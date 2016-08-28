@@ -1,5 +1,7 @@
 package com.infonal.servlets;
 
+import com.infonal.CONSTANTS;
+import com.infonal.converter.UserConverter;
 import com.infonal.dao.UserDAO;
 import com.infonal.model.User;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -20,11 +22,14 @@ public class EditUserServlet extends HttpServlet {
 
 	private RequestDispatcher dispather;
 
+	private UserConverter userConverter;
+
 	public EditUserServlet() { }
 
 	public EditUserServlet(UserDAO userDAO, RequestDispatcher dispatcher) {
 		this.userDAO = userDAO;
 		this.dispather = dispatcher;
+		userConverter = new UserConverter();
 	}
 
 	@Override
@@ -32,10 +37,11 @@ public class EditUserServlet extends HttpServlet {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("infonal-context.xml");
 		this.userDAO = (UserDAO) ctx.getBean("userDao");
 		this.dispather = getServletContext().getRequestDispatcher("/user.jsp");
+		userConverter = new UserConverter();
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String id = request.getParameter("id");
+		String id = request.getParameter(CONSTANTS.REQUEST_ATT_ID);
 		if (id == null || "".equals(id)) {
 			throw new ServletException("id zorunlu");
 		}
@@ -43,50 +49,35 @@ public class EditUserServlet extends HttpServlet {
 		User user = new User();
 		user.setId(id);
 		user = userDAO.readUser(user);
-		request.setAttribute("user", user);
+		request.setAttribute(CONSTANTS.REQUEST_ATT_USER, user);
 
 		List<User> users = userDAO.readAllUser();
-		request.setAttribute("users", users);
+		request.setAttribute(CONSTANTS.REQUEST_ATT_USERS, users);
 
 		dispather.forward(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String id = request.getParameter("id");
+		User user = userConverter.toUser(request);
 
-		if (id == null || "".equals(id)) {
+		if (user.getId() == null) {
 			throw new ServletException("id zorunlu");
 		}
 
-		String name = request.getParameter("name");
-		String surname = request.getParameter("surname");
+		if (user.getName() == null) {
 
-		if ((name == null || name.equals(""))) {
+			request.setAttribute(CONSTANTS.REQUEST_ATT_ERROR, "isim zorunlu");
 
-			request.setAttribute("error", "isim zorunlu");
-
-			User user = new User();
-			user.setId(id);
-			user.setName(name);
-			user.setSurname(surname);
-
-			request.setAttribute("user", user);
+			request.setAttribute(CONSTANTS.REQUEST_ATT_USER, user);
 			List<User> users = userDAO.readAllUser();
-			request.setAttribute("users", users);
+			request.setAttribute(CONSTANTS.REQUEST_ATT_USERS, users);
 
 		} else {
-			User p = new User();
-			p.setId(id);
-			p.setName(name);
-			p.setSurname(surname);
-			userDAO.updateUser(p);
-
-			request.setAttribute("success", "kullanıcı başarıyla güncellendi");
-
+			userDAO.updateUser(user);
+			request.setAttribute(CONSTANTS.REQUEST_ATT_SUCCESS, "kullanıcı başarıyla güncellendi");
 			List<User> users = userDAO.readAllUser();
-			request.setAttribute("users", users);
-
+			request.setAttribute(CONSTANTS.REQUEST_ATT_USERS, users);
 		}
 
 		dispather.forward(request, response);

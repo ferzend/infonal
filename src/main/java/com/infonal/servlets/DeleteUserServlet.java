@@ -1,5 +1,7 @@
 package com.infonal.servlets;
 
+import com.infonal.CONSTANTS;
+import com.infonal.converter.UserConverter;
 import com.infonal.dao.UserDAO;
 import com.infonal.model.User;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -19,29 +21,31 @@ public class DeleteUserServlet extends HttpServlet {
 
 	private UserDAO userDAO;
 
+	private RequestDispatcher rd;
+
+	private UserConverter userConverter;
+
 	@Override
 	public void init() throws ServletException {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("infonal-context.xml");
-
 		this.userDAO = (UserDAO) ctx.getBean("userDao");
+		rd = getServletContext().getRequestDispatcher("/user.jsp");
+		userConverter = new UserConverter();
 	}
 
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		String id = request.getParameter("id");
-		if (id == null || "".equals(id)) {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		User user = userConverter.toUser(request);
+
+		if (user.getId() == null ) {
 			throw new ServletException("id zorunlu");
 		}
+		userDAO.deleteUser(user);
 
-		User p = new User();
-		p.setId(id);
-		userDAO.deleteUser(p);
-
-		request.setAttribute("success", "kullanıcı silindi");
+		request.setAttribute(CONSTANTS.REQUEST_ATT_SUCCESS, "kullanıcı silindi");
 		List<User> users = userDAO.readAllUser();
-		request.setAttribute("users", users);
+		request.setAttribute(CONSTANTS.REQUEST_ATT_USERS, users);
 
-		RequestDispatcher rd = getServletContext().getRequestDispatcher("/user.jsp");
 		rd.forward(request, response);
 	}
 

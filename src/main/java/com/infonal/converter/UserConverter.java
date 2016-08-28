@@ -1,9 +1,12 @@
 package com.infonal.converter;
 
+import com.infonal.CONSTANTS;
 import com.infonal.model.User;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class UserConverter {
 	public DBObject toDBObject(User p) {
@@ -23,6 +26,20 @@ public class UserConverter {
 		p.setId(id.toString());
 		return p;
 
+	}
+
+	public User toUser(HttpServletRequest request) {
+
+		String id = request.getParameter(CONSTANTS.REQUEST_ATT_ID);
+		String name = request.getParameter(CONSTANTS.REQUEST_ATT_NAME);
+		String surname = request.getParameter(CONSTANTS.REQUEST_ATT_SURNAME);
+
+		User user = new User();
+		user.setId("".equals(id) || id == null ? null : id);
+		user.setName("".equals(name) || name == null ? null : name);
+		user.setSurname(surname);
+
+		return user;
 	}
 	
 }

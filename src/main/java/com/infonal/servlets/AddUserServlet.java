@@ -1,5 +1,7 @@
 package com.infonal.servlets;
 
+import com.infonal.CONSTANTS;
+import com.infonal.converter.UserConverter;
 import com.infonal.dao.UserDAO;
 import com.infonal.model.User;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -18,33 +20,31 @@ public class AddUserServlet extends HttpServlet {
 
 	private UserDAO userDAO;
 
+	private RequestDispatcher rd;
+
+	private UserConverter userConverter;
+
 	@Override
 	public void init() throws ServletException {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("infonal-context.xml");
 		this.userDAO = (UserDAO) ctx.getBean("userDao");
+		rd = getServletContext().getRequestDispatcher("/user.jsp");
+		userConverter = new UserConverter();
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		String name = request.getParameter("name");
-		String surname = request.getParameter("surname");
-		RequestDispatcher rd = getServletContext().getRequestDispatcher("/user.jsp");
+		User user = userConverter.toUser(request);
 
-		if ((name == null || name.equals(""))) {
+		if (user.getName() == null ) {
 
-			request.setAttribute("error", "isim zorunlu");
+			request.setAttribute(CONSTANTS.REQUEST_ATT_ERROR, "isim zorunlu");
 
 		} else {
-
-			User p = new User();
-			p.setSurname(surname);
-			p.setName(name);
-
-			userDAO.createUser(p);
-			request.setAttribute("success", "kullanıcı eklendi");
+			userDAO.createUser(user);
+			request.setAttribute(CONSTANTS.REQUEST_ATT_SUCCESS, "kullanıcı eklendi");
 			List<User> users = userDAO.readAllUser();
-			request.setAttribute("users", users);
-
+			request.setAttribute(CONSTANTS.REQUEST_ATT_USERS, users);
 		}
 		rd.forward(request, response);
 	}
