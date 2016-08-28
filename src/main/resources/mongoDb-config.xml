@@ -11,16 +11,19 @@
                            http://www.springframework.org/schema/aop       http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
                            http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd">
 
-	<import resource="classpath*:com.isbank.tane.framework.core-context.xml" />
-	<import resource="classpath:mongoDb-config.xml" />
 
-	<bean id="userConverter" class="com.infonal.converter.UserConverter">
-
+	<bean name="dbName" class="java.lang.String">
+		<constructor-arg value="infonalUsers" />
 	</bean>
 
-	<bean id="userDao" class="com.infonal.dao.UserDAO">
-		<constructor-arg ref="mongoClient" />
-		<constructor-arg ref="userConverter" />
+	<bean name="userTable" class="java.lang.String">
+		<constructor-arg value="Users" />
 	</bean>
+
+	<bean id="mongoClient" class="com.mongodb.MongoClient">
+		<constructor-arg type="java.lang.String" value="localhost"/>
+		<constructor-arg type="int" value="27017"/>
+	</bean>
+
 
 </beans>
